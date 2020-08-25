@@ -1,0 +1,6 @@
+config.py
+__pycache__/
+test.py
+tg_api_search_bot.service
+venv/
+.vscode/
