@@ -65,7 +65,7 @@ async def fetch_inline(inline_query: types.InlineQuery):
         )
         items.append(item)
 
-    await bot.answer_inline_query(inline_query.id, results=items, cache_time=240)
+    await bot.answer_inline_query(inline_query.id, results=items, cache_time=1440)
 
 
 # default inline results: api ref, aiogram docs, aiogram srcs
@@ -101,7 +101,7 @@ async def default_handler(inline_query: types.InlineQuery):
         thumb_url=AIOGRAM_LOGO_URL
     )
 
-    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=1)
+    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=1440)
 
 
 if __name__ == '__main__':

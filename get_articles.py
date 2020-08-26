@@ -17,15 +17,18 @@ async def get_api_articles(query: str):
 
     async with aiohttp.ClientSession() as session:
         content = await fetch(session, url)
-    if not content:
-        return results
 
-    tree = html.fromstring(content)
+    try:
+        tree = html.fromstring(content)
+    except:
+        return []
+
     for tag in tree.xpath(expr, query=query.lower()):
         res = {
             'type': 'API Reference',
             'title': tag.xpath('following-sibling::text()')[0],
             'link': '{}{}'.format(url, tag.xpath('@href')[0])
+            # TODO: Add result category: type, method, inline, stickers etc
         }
         results.append(res)
 
@@ -39,10 +42,12 @@ async def get_aiogram_examples(query: str):
     results = []
     async with aiohttp.ClientSession() as session:
         content = await fetch(session, url)
-    if not content:
-        return results
 
-    tree = html.fromstring(content)
+    try:
+        tree = html.fromstring(content)
+    except:
+        return []
+
     for tag in tree.xpath(expr, query=query.lower(), tag_class=tag_class):
         res = {
             'type': 'Aiogram example',
