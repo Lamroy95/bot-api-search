@@ -7,6 +7,10 @@ import hashlib
 import logging
 
 
+TG_LOGO_URL = 'https://telegram.org/img/t_logo.png'
+AIOGRAM_LOGO_URL = 'https://docs.aiogram.dev/en/latest/_static/logo.png'
+
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,7 +23,11 @@ dp = Dispatcher(bot, storage=storage)
 @dp.message_handler(commands=['start', 'help'])
 @dp.throttled(rate=2)
 async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm bot that searches articles from Telegram Bot API and Aiogram framework examples!\nInline mode only:\n<code>@tgapisearchbot</code> query\n\n<i>Powered by aiogram</i>")
+    await message.reply(
+        "Hi!\nI'm bot that searches articles from Telegram Bot API and Aiogram framework examples!"
+        "Inline mode only:<code>@tgApiSearchBot</code> query\n"
+        "<i>Powered by aiogram</i>"
+    )
 
 
 @dp.inline_handler(lambda q: len(q.query) > 2 and len(q.query) < 60)
@@ -30,30 +38,28 @@ async def fetch_inline(inline_query: types.InlineQuery):
 
     items = []
 
-    # add results from TG Bot API Reference
-    api_results = await get_api_articles(text)
-    # add results from docs (?)
-    xmpl_results = await get_aiogram_examples(text)
-    results = (api_results or []) + (xmpl_results or [])
-    # check results
-    if not results:
-        return
+    # add articles from TG Bot API Reference
+    api_articles = await get_api_articles(text)
+    # add articles from github examples
+    xmpl_articles = await get_aiogram_examples(text)
+
+    articles = api_articles + xmpl_articles
 
     # 50 results max
-    for res in results[:50]:
-        result_id = hash(res['title'])
+    for article in articles[:50]:
+        result_id = hash(article['title'])
         input_content = types.InputTextMessageContent(
-            f'{res["type"]}: <a href=\"{res["link"]}\">{res["title"]}</a>',
+            f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
             disable_web_page_preview=True
         )
-        if res['type'] == 'API Reference':
-            thumb_url = 'https://telegram.org/img/t_logo.png'
+        if article['type'] == 'API Reference':
+            thumb_url = TG_LOGO_URL
         else:
-            thumb_url = 'https://docs.aiogram.dev/en/latest/_static/logo.png'
+            thumb_url = AIOGRAM_LOGO_URL
         item = types.InlineQueryResultArticle(
             id=result_id,
-            title=res["title"],
-            description=res["type"],
+            title=article["title"],
+            description=article["type"],
             input_message_content=input_content,
             thumb_url=thumb_url
         )
@@ -62,11 +68,9 @@ async def fetch_inline(inline_query: types.InlineQuery):
     await bot.answer_inline_query(inline_query.id, results=items, cache_time=240)
 
 
+# default inline results: api ref, aiogram docs, aiogram srcs
 @dp.inline_handler(lambda q: len(q.query) < 3)
 async def default_handler(inline_query: types.InlineQuery):
-    telegram_thumb_url = 'https://telegram.org/img/t_logo.png'
-    aiogram_thumb_url = 'https://docs.aiogram.dev/en/latest/_static/logo.png'
-
     item1 = types.InlineQueryResultArticle(
         id=1,
         title="Telegram Bot API Reference",
@@ -74,7 +78,7 @@ async def default_handler(inline_query: types.InlineQuery):
             '<a href="https://core.telegram.org/bots/api">Telegram Bot API Reference</a>',
             disable_web_page_preview=True
         ),
-        thumb_url=telegram_thumb_url
+        thumb_url=TG_LOGO_URL
     )
 
     item2 = types.InlineQueryResultArticle(
@@ -84,7 +88,7 @@ async def default_handler(inline_query: types.InlineQuery):
             '<a href="https://docs.aiogram.dev/en/latest/">Aiogram Documentation</a>',
             disable_web_page_preview=True
         ),
-        thumb_url=aiogram_thumb_url
+        thumb_url=AIOGRAM_LOGO_URL
     )
 
     item3 = types.InlineQueryResultArticle(
@@ -94,7 +98,7 @@ async def default_handler(inline_query: types.InlineQuery):
             '<a href="https://github.com/aiogram/aiogram/">Aiogram Sources</a>',
             disable_web_page_preview=True
         ),
-        thumb_url=aiogram_thumb_url
+        thumb_url=AIOGRAM_LOGO_URL
     )
 
     await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=1)
