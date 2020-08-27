@@ -28,7 +28,6 @@ async def get_api_articles(query: str):
             'type': 'API Reference',
             'title': tag.xpath('following-sibling::text()')[0],
             'link': '{}{}'.format(url, tag.xpath('@href')[0])
-            # TODO: Add result category: type, method, inline, stickers etc
         }
         results.append(res)
 

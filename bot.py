@@ -52,16 +52,16 @@ async def fetch_inline(inline_query: types.InlineQuery):
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
             disable_web_page_preview=True
         )
-        if article['type'] == 'API Reference':
-            thumb_url = TG_LOGO_URL
-        else:
-            thumb_url = AIOGRAM_LOGO_URL
+        # if article['type'] == 'API Reference':
+        #     thumb_url = TG_LOGO_URL
+        # else:
+        #     thumb_url = AIOGRAM_LOGO_URL
         item = types.InlineQueryResultArticle(
             id=result_id,
             title=article["title"],
             description=article["type"],
-            input_message_content=input_content,
-            thumb_url=thumb_url
+            input_message_content=input_content
+            # thumb_url=thumb_url
         )
         items.append(item)
 
