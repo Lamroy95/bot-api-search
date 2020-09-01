@@ -2,5 +2,9 @@ class ItemExistsError(Exception):
     pass
 
 
-class TooLargeString(Exception):
+class StrLenOutOfRange(Exception):
+    pass
+
+
+class SamePositionError(Exception):
     pass
