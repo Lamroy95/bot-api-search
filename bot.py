@@ -30,7 +30,7 @@ async def get_advantages_article():
 
 
 @dp.message_handler(commands=['start', 'help'])
-@dp.throttled(rate=2)
+@dp.throttled(rate=0.5)
 async def send_welcome(message: types.Message):
     await message.reply(
         "Hi!\nI'm bot that searches articles from Telegram Bot API and Aiogram framework examples!"
