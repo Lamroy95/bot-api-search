@@ -1,6 +1,7 @@
 #!venv/bin/python
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+import advantages
 from config import API_TOKEN
 from get_articles import get_api_articles, get_aiogram_examples
 import hashlib
@@ -18,6 +19,14 @@ logging.basicConfig(level=logging.DEBUG)
 bot = Bot(token=API_TOKEN, parse_mode='HTML')
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+
+
+async def get_advantages_article():
+    result = f'{advantages.header}:'
+    for i, item in enumerate(advantages.adv_list):
+        result += f'\n{i+1}) {item}.'
+
+    return result
 
 
 @dp.message_handler(commands=['start', 'help'])
@@ -101,7 +110,16 @@ async def default_handler(inline_query: types.InlineQuery):
         thumb_url=AIOGRAM_LOGO_URL
     )
 
-    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=1440)
+    item4 = types.InlineQueryResultArticle(
+        id=4,
+        title="Почему aiogram?",
+        input_message_content=types.InputTextMessageContent(
+            await get_advantages_article(),
+            disable_web_page_preview=True
+        )
+    )
+
+    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3, item4], cache_time=720)
 
 
 if __name__ == '__main__':
