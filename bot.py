@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import advantages
 from config import API_TOKEN
-from get_articles import get_api_articles, get_aiogram_examples
+from get_articles import searcher
 import hashlib
 import logging
 
@@ -11,11 +11,8 @@ import logging
 TG_LOGO_URL = 'https://telegram.org/img/t_logo.png'
 AIOGRAM_LOGO_URL = 'https://docs.aiogram.dev/en/latest/_static/logo.png'
 
-
-# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN, parse_mode='HTML')
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -39,7 +36,7 @@ async def send_welcome(message: types.Message):
     )
 
 
-@dp.inline_handler(lambda q: len(q.query) > 2 and len(q.query) < 60)
+@dp.inline_handler(lambda q: len(q.query) > 2 and len(q.query) < 40)
 async def fetch_inline(inline_query: types.InlineQuery):
     text = inline_query.query
     if not text:
@@ -48,14 +45,14 @@ async def fetch_inline(inline_query: types.InlineQuery):
     items = []
 
     # add articles from TG Bot API Reference
-    api_articles = await get_api_articles(text)
+    api_articles = await searcher.get_api_articles(text)
     # add articles from github examples
-    xmpl_articles = await get_aiogram_examples(text)
+    examples = await searcher.get_aiogram_examples(text)
 
-    articles = api_articles + xmpl_articles
+    results = api_articles + examples
 
     # 50 results max
-    for article in articles[:50]:
+    for article in results[:50]:
         result_id = hash(article['title'])
         input_content = types.InputTextMessageContent(
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
@@ -74,10 +71,10 @@ async def fetch_inline(inline_query: types.InlineQuery):
         )
         items.append(item)
 
-    await bot.answer_inline_query(inline_query.id, results=items, cache_time=1440)
+    await bot.answer_inline_query(inline_query.id, results=items, cache_time=120)
 
 
-# default inline results: api ref, aiogram docs, aiogram srcs
+# default inline results: api reference, aiogram docs and aiogram src
 @dp.inline_handler(lambda q: len(q.query) < 3)
 async def default_handler(inline_query: types.InlineQuery):
     item1 = types.InlineQueryResultArticle(
@@ -119,7 +116,7 @@ async def default_handler(inline_query: types.InlineQuery):
         )
     )
 
-    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3, item4], cache_time=720)
+    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3, item4], cache_time=120)
 
 
 if __name__ == '__main__':

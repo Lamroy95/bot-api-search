@@ -3,4 +3,5 @@ __pycache__/
 test.py
 tg_api_search_bot.service
 venv/
+.venv/
 .vscode/
