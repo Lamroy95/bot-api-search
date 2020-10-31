@@ -1,11 +1,13 @@
 #!venv/bin/python
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import advantages
-from config import API_TOKEN
-from get_articles import searcher
 import hashlib
 import logging
+
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+
+import advantages
+from config import API_TOKEN
+from searcher import searcher
 
 
 TG_LOGO_URL = 'https://telegram.org/img/t_logo.png'
@@ -54,20 +56,17 @@ async def fetch_inline(inline_query: types.InlineQuery):
     # 50 results max
     for article in results[:50]:
         result_id = hash(article['title'])
+
         input_content = types.InputTextMessageContent(
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
             disable_web_page_preview=True
         )
-        # if article['type'] == 'API Reference':
-        #     thumb_url = TG_LOGO_URL
-        # else:
-        #     thumb_url = AIOGRAM_LOGO_URL
+
         item = types.InlineQueryResultArticle(
             id=result_id,
             title=article["title"],
             description=article["type"],
             input_message_content=input_content
-            # thumb_url=thumb_url
         )
         items.append(item)
 
@@ -82,8 +81,7 @@ async def default_handler(inline_query: types.InlineQuery):
         title="Telegram Bot API Reference",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://core.telegram.org/bots/api">Telegram Bot API Reference</a>',
-            disable_web_page_preview=True
-        ),
+            disable_web_page_preview=True),
         thumb_url=TG_LOGO_URL
     )
 
@@ -92,8 +90,7 @@ async def default_handler(inline_query: types.InlineQuery):
         title="Aiogram Documentation",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://docs.aiogram.dev/en/latest/">Aiogram Documentation</a>',
-            disable_web_page_preview=True
-        ),
+            disable_web_page_preview=True),
         thumb_url=AIOGRAM_LOGO_URL
     )
 
@@ -102,8 +99,7 @@ async def default_handler(inline_query: types.InlineQuery):
         title="Aiogram Sources",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://github.com/aiogram/aiogram/">Aiogram Sources</a>',
-            disable_web_page_preview=True
-        ),
+            disable_web_page_preview=True),
         thumb_url=AIOGRAM_LOGO_URL
     )
 
@@ -112,10 +108,8 @@ async def default_handler(inline_query: types.InlineQuery):
         title="Почему aiogram?",
         input_message_content=types.InputTextMessageContent(
             await get_advantages_article(),
-            disable_web_page_preview=True
-        )
+            disable_web_page_preview=True)
     )
-
     await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3, item4], cache_time=120)
 
 
