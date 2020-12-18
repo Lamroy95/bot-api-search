@@ -38,7 +38,7 @@ async def send_welcome(message: types.Message):
     )
 
 
-@dp.inline_handler(lambda q: len(q.query) > 2 and len(q.query) < 40)
+@dp.inline_handler(lambda q: 2 < len(q.query) < 40)
 async def fetch_inline(inline_query: types.InlineQuery):
     text = inline_query.query
     if not text:
@@ -87,30 +87,21 @@ async def default_handler(inline_query: types.InlineQuery):
 
     item2 = types.InlineQueryResultArticle(
         id=2,
-        title="Aiogram Documentation",
+        title="Aiogram Examples",
         input_message_content=types.InputTextMessageContent(
-            '<a href="https://docs.aiogram.dev/en/latest/">Aiogram Documentation</a>',
+            '<a href="https://github.com/aiogram/aiogram/tree/dev-2.x/examples">Aiogram Examples</a>',
             disable_web_page_preview=True),
         thumb_url=AIOGRAM_LOGO_URL
     )
 
     item3 = types.InlineQueryResultArticle(
         id=3,
-        title="Aiogram Sources",
-        input_message_content=types.InputTextMessageContent(
-            '<a href="https://github.com/aiogram/aiogram/">Aiogram Sources</a>',
-            disable_web_page_preview=True),
-        thumb_url=AIOGRAM_LOGO_URL
-    )
-
-    item4 = types.InlineQueryResultArticle(
-        id=4,
         title="Почему aiogram?",
         input_message_content=types.InputTextMessageContent(
             await get_advantages_article(),
             disable_web_page_preview=True)
     )
-    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3, item4], cache_time=120)
+    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=120)
 
 
 if __name__ == '__main__':

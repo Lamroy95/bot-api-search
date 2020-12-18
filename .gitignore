@@ -5,3 +5,4 @@ tg_api_search_bot.service
 venv/
 .venv/
 .vscode/
+.idea/
