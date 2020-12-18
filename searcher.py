@@ -5,6 +5,7 @@ import asyncio
 from lxml import html
 
 
+# TODO: move this to config
 API_REFERENCE_URL = 'https://core.telegram.org/bots/api'
 EXAMPLES_URL = 'https://github.com/aiogram/aiogram/tree/dev-2.x/examples'
 CACHE_MAX_AGE = 120 * 60
@@ -44,13 +45,11 @@ class Searcher:
         return self._cached_articles
 
     async def _get_articles_from_html(self) -> list:
-        expr = "//a[@class='anchor']"
         results = []
-
         content = await fetch(self._session, API_REFERENCE_URL)
-
         tree = html.fromstring(content)
 
+        expr = "//a[@class='anchor']"
         for tag in tree.xpath(expr):
             res = {
                 'type': 'API Reference',

@@ -20,6 +20,10 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 
+# TODO: add metrics middleware
+# TODO: add usable config (probably env vars)
+
+
 async def get_advantages_article():
     result = f'{advantages.header}:'
     for i, item in enumerate(advantages.adv_list):
@@ -29,11 +33,11 @@ async def get_advantages_article():
 
 
 @dp.message_handler(commands=['start', 'help'])
-@dp.throttled(rate=0.5)
+@dp.throttled(rate=0.1)
 async def send_welcome(message: types.Message):
     await message.reply(
-        "Hi!\nI'm bot that searches articles from Telegram Bot API and Aiogram framework examples!"
-        "Inline mode only:<code>@tgApiSearchBot</code> query\n"
+        "Hello.\nI'm an inline bot that searches articles from Telegram Bot API and Aiogram framework examples!"
+        "Inline mode only: <code>@tgApiSearchBot</code> fsm\n"
         "<i>Powered by aiogram</i>"
     )
 
@@ -104,5 +108,23 @@ async def default_handler(inline_query: types.InlineQuery):
     await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=120)
 
 
+# TODO: Refactor debug shit below!!!
+@dp.errors_handler()
+async def errors_handler(update: types.Update, exception: Exception):
+    try:
+        raise exception
+    except Exception as e:
+        await bot.send_message(-1001425278854, f"Cause exception <b>{e}</b> in update\n<code>{update}</code>")
+    return True
+
+
+async def notify_startup(*args):
+    await bot.send_message(-1001425278854, "Bot started")
+
+
+async def notify_shutdown(*args):
+    await bot.send_message(-1001425278854, "Bot stopped")
+
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=notify_startup, on_shutdown=notify_shutdown)
