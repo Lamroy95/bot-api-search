@@ -12,6 +12,8 @@ from searcher import searcher
 
 TG_LOGO_URL = 'https://telegram.org/img/t_logo.png'
 AIOGRAM_LOGO_URL = 'https://docs.aiogram.dev/en/latest/_static/logo.png'
+MAX_INLINE_RESULTS = 50
+QUERY_CACHE_TIME = 120
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -45,27 +47,19 @@ async def send_welcome(message: types.Message):
 @dp.inline_handler(lambda q: 2 < len(q.query) < 30)
 async def fetch_inline(inline_query: types.InlineQuery):
     text = inline_query.query
-    if not text:
-        return
-
     items = []
-
-    # add articles from TG Bot API Reference
     api_articles = await searcher.get_api_articles(text)
-    # add articles from github examples
     examples = await searcher.get_aiogram_examples(text)
-
     results = api_articles + examples
+    offset = int(inline_query.offset or 0)
 
-    # 50 results max
-    for article in results[:50]:
+    for article in results[offset:offset+MAX_INLINE_RESULTS]:
         result_id = hash(article['title'])
 
         input_content = types.InputTextMessageContent(
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
             disable_web_page_preview=True
         )
-
         item = types.InlineQueryResultArticle(
             id=result_id,
             title=article["title"],
@@ -74,7 +68,13 @@ async def fetch_inline(inline_query: types.InlineQuery):
         )
         items.append(item)
 
-    await bot.answer_inline_query(inline_query.id, results=items, cache_time=120)
+    next_offset = str(offset + MAX_INLINE_RESULTS) if len(items) == MAX_INLINE_RESULTS else ""
+    await bot.answer_inline_query(
+        inline_query.id,
+        results=items,
+        cache_time=QUERY_CACHE_TIME,
+        next_offset=next_offset,
+    )
 
 
 # default inline results: api reference, aiogram docs and aiogram src
@@ -108,8 +108,9 @@ async def default_handler(inline_query: types.InlineQuery):
     await bot.answer_inline_query(
         inline_query.id,
         results=[item1, item2, item3],
-        cache_time=120,
-        switch_pm_text="Query should be >3 characters"
+        cache_time=QUERY_CACHE_TIME,
+        switch_pm_text="Query should be >3 characters",
+        switch_pm_parameter="must_click",
     )
 
 
