@@ -37,12 +37,12 @@ async def get_advantages_article():
 async def send_welcome(message: types.Message):
     await message.reply(
         "Hello.\nI'm an inline bot that searches articles from Telegram Bot API and Aiogram framework examples!"
-        "Inline mode only: <code>@tgApiSearchBot</code> fsm\n"
+        "Inline mode only: <code>@tgApiSearchBot fsm</code>\n"
         "<i>Powered by aiogram</i>"
     )
 
 
-@dp.inline_handler(lambda q: 2 < len(q.query) < 40)
+@dp.inline_handler(lambda q: 2 < len(q.query) < 30)
 async def fetch_inline(inline_query: types.InlineQuery):
     text = inline_query.query
     if not text:
@@ -105,7 +105,12 @@ async def default_handler(inline_query: types.InlineQuery):
             await get_advantages_article(),
             disable_web_page_preview=True)
     )
-    await bot.answer_inline_query(inline_query.id, results=[item1, item2, item3], cache_time=120)
+    await bot.answer_inline_query(
+        inline_query.id,
+        results=[item1, item2, item3],
+        cache_time=120,
+        switch_pm_text="Query should be >3 characters"
+    )
 
 
 # TODO: Refactor debug shit below!!!
