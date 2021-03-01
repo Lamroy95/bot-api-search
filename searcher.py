@@ -21,14 +21,14 @@ async def fetch(session: aiohttp.ClientSession, url: str, encoding: str = 'utf-8
 
 
 class Searcher:
-    _cached_articles: list
-    _cached_examples: list
-    _session: aiohttp.ClientSession
-
     def __init__(self):
-        loop = asyncio.get_event_loop()
+        self._cached_articles: list
+        self._cached_examples: list
+        self._session: aiohttp.ClientSession
+
+        self.loop = asyncio.get_event_loop()
         self._session = aiohttp.ClientSession()
-        loop.create_task(self._cache_updater())
+        self.loop.create_task(self._cache_updater())
 
     async def _cache_updater(self):
         while True:
@@ -38,7 +38,7 @@ class Searcher:
             await asyncio.sleep(CACHE_MAX_AGE)
 
     async def _get_all_articles(self) -> list:
-        if not self._cached_articles:
+        if self._cached_articles is None:
             logging.debug('Articles cache is empty. Updating manually')
             self._cached_articles = await self._get_articles_from_html()
 
