@@ -4,14 +4,14 @@ import aiohttp
 import asyncio
 from lxml import html
 
-
-# TODO: move this to config
-API_REFERENCE_URL = 'https://core.telegram.org/bots/api'
-EXAMPLES_URL = 'https://github.com/aiogram/aiogram/tree/dev-2.x/examples'
-CACHE_MAX_AGE = 120 * 60
-EXAMPLES_ALIASES = {
-    "finite_state_machine_example.py": ["fsm"],
-}
+from config import (
+    API_REFERENCE_URL,
+    EXAMPLES_URL,
+    EXAMPLES_ALIASES,
+    CACHE_MAX_AGE,
+    API_ARTICLE_ANCHOR_XPATH,
+    EXAMPLES_LINK_XPATH,
+)
 
 
 async def fetch(session: aiohttp.ClientSession, url: str, encoding: str = 'utf-8') -> str:
@@ -49,7 +49,7 @@ class Searcher:
         content = await fetch(self._session, API_REFERENCE_URL)
         tree = html.fromstring(content)
 
-        expr = "//a[@class='anchor']"
+        expr = API_ARTICLE_ANCHOR_XPATH
         for tag in tree.xpath(expr):
             res = {
                 'type': 'API Reference',
@@ -71,9 +71,8 @@ class Searcher:
         content = await fetch(self._session, EXAMPLES_URL)
         tree = html.fromstring(content)
 
-        expr = "//a[@class=$tag_class]"
-        tag_class = 'js-navigation-open link-gray-dark'
-        for tag in tree.xpath(expr, tag_class=tag_class):
+        expr = EXAMPLES_LINK_XPATH
+        for tag in tree.xpath(expr):
             res = {
                 'type': 'Aiogram example',
                 'title': tag.xpath('text()')[0],
