@@ -6,6 +6,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from advantages import get_advantages_article
 import config
+from extensions import extensions
 from searcher import searcher
 
 
@@ -26,6 +27,30 @@ async def send_welcome(message: types.Message):
     )
 
 
+@dp.inline_handler(lambda q: q in extensions)
+async def fetch_extensions(inline_query: types.InlineQuery):
+    extension = extensions[inline_query.query]
+    inline_results, next_offset = extension.get_inline_results(inline_query)
+
+    if not inline_results:
+        item = types.InlineQueryResultArticle(
+            id=str(hash(inline_query.query)),
+            title="Мемов нет :(",
+            description="Заливать тута, в папку мемес: https://github.com/Lamroy95/bot-api-search",
+            input_message_content=types.InputTextMessageContent(
+                message_text="Мемов нет :(\nЗаливать тута, в папку мемес: https://github.com/Lamroy95/bot-api-search",
+                disable_web_page_preview=True)
+        )
+        inline_results = [item]
+
+    await bot.answer_inline_query(
+            inline_query.id,
+            results=inline_results,
+            cache_time=config.QUERY_CACHE_TIME,
+            next_offset=next_offset,
+        )
+
+
 @dp.inline_handler(lambda q: 2 < len(q.query) < 30)
 async def fetch_inline(inline_query: types.InlineQuery):
     text = inline_query.query
@@ -36,7 +61,7 @@ async def fetch_inline(inline_query: types.InlineQuery):
     offset = int(inline_query.offset or 0)
 
     for article in results[offset:offset+config.MAX_INLINE_RESULTS]:
-        result_id = hash(article['title'])
+        result_id = str(hash(article['title']))
 
         input_content = types.InputTextMessageContent(
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
@@ -63,7 +88,7 @@ async def fetch_inline(inline_query: types.InlineQuery):
 @dp.inline_handler(lambda q: len(q.query) < 3)
 async def default_handler(inline_query: types.InlineQuery):
     item1 = types.InlineQueryResultArticle(
-        id=1,
+        id="1",
         title="Telegram Bot API Reference",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://core.telegram.org/bots/api">Telegram Bot API Reference</a>',
@@ -72,7 +97,7 @@ async def default_handler(inline_query: types.InlineQuery):
     )
 
     item2 = types.InlineQueryResultArticle(
-        id=2,
+        id="2",
         title="Aiogram Examples",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://github.com/aiogram/aiogram/tree/dev-2.x/examples">Aiogram Examples</a>',
@@ -81,7 +106,7 @@ async def default_handler(inline_query: types.InlineQuery):
     )
 
     item3 = types.InlineQueryResultArticle(
-        id=3,
+        id="3",
         title="Почему aiogram?",
         input_message_content=types.InputTextMessageContent(
             await get_advantages_article(),

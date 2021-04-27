@@ -1,3 +1,4 @@
+from pathlib import Path
 from os import environ
 from dotenv import load_dotenv
 
@@ -22,3 +23,6 @@ EXAMPLES_ALIASES = {
 
 API_ARTICLE_ANCHOR_XPATH = "//a[@class='anchor']"
 EXAMPLES_LINK_XPATH = "//a[@class='js-navigation-open Link--primary']"
+
+MEMES_URL = "https://github.com/Lamroy95/bot-api-search/tree/master/memes"
+MEMES_XPATH = "//a[@class='js-navigation-open Link--primary']"
