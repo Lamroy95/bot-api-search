@@ -24,7 +24,6 @@ class Searcher:
     def __init__(self):
         self._cached_articles: list
         self._cached_examples: list
-        self._session: aiohttp.ClientSession
 
         self.loop = asyncio.get_event_loop()
         self._session = aiohttp.ClientSession()

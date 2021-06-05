@@ -7,21 +7,22 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from advantages import get_advantages_article
 import config
 from searcher import searcher
+from metrics import send_metric, MetricsMiddleware
 
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 bot = Bot(token=config.API_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 
-@dp.message_handler(commands=['start', 'help'])
-@dp.throttled(rate=0.1)
+@dp.message_handler(content_types=types.ContentTypes.ANY)
 async def send_welcome(message: types.Message):
     await message.reply(
         "Hello.\nI'm an inline bot that searches articles from Telegram Bot API and Aiogram framework examples!"
-        "Inline mode only: <code>@tgApiSearchBot fsm</code>\n"
+        "Inline mode only: <code>@tgApiSearchBot search_query</code>\n"
         "<i>Powered by aiogram</i>"
     )
 
@@ -36,7 +37,9 @@ async def fetch_inline(inline_query: types.InlineQuery):
     offset = int(inline_query.offset or 0)
 
     for article in results[offset:offset+config.MAX_INLINE_RESULTS]:
-        result_id = hash(article['title'])
+        result_id = article['title']
+        while len(article['title'].encode('utf-8')) > 64:
+            result_id = result_id[:-1]
 
         input_content = types.InputTextMessageContent(
             f'{article["type"]}: <a href=\"{article["link"]}\">{article["title"]}</a>',
@@ -59,11 +62,11 @@ async def fetch_inline(inline_query: types.InlineQuery):
     )
 
 
-# default inline results: api reference, aiogram docs and aiogram src
+# default inline results
 @dp.inline_handler(lambda q: len(q.query) < 3)
 async def default_handler(inline_query: types.InlineQuery):
     item1 = types.InlineQueryResultArticle(
-        id=1,
+        id="api-reference",
         title="Telegram Bot API Reference",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://core.telegram.org/bots/api">Telegram Bot API Reference</a>',
@@ -72,7 +75,7 @@ async def default_handler(inline_query: types.InlineQuery):
     )
 
     item2 = types.InlineQueryResultArticle(
-        id=2,
+        id="aiogram-examples",
         title="Aiogram Examples",
         input_message_content=types.InputTextMessageContent(
             '<a href="https://github.com/aiogram/aiogram/tree/dev-2.x/examples">Aiogram Examples</a>',
@@ -81,7 +84,7 @@ async def default_handler(inline_query: types.InlineQuery):
     )
 
     item3 = types.InlineQueryResultArticle(
-        id=3,
+        id="why-aiogram",
         title="Почему aiogram?",
         input_message_content=types.InputTextMessageContent(
             await get_advantages_article(),
@@ -98,13 +101,18 @@ async def default_handler(inline_query: types.InlineQuery):
 
 @dp.errors_handler()
 async def errors_handler(update: types.Update, exception: Exception):
-    try:
-        raise exception
-    except Exception as e:
-        await bot.send_message(
-            config.LOG_CHAT_ID,
-            f"Cause exception <b>{e}</b> in update\n<code>{update}</code>"
-        )
+    send_metric(
+        measurement="errors",
+        tags=dict(),
+        fields={
+            "error_message": str(exception)
+        }
+    )
+
+    await bot.send_message(
+        config.LOG_CHAT_ID,
+        f"Cause exception <b>{exception}</b> in update\n<code>{update}</code>"
+    )
     return True
 
 
@@ -117,6 +125,7 @@ async def notify_shutdown(*args):
 
 
 if __name__ == '__main__':
+    dp.middleware.setup(MetricsMiddleware())
     executor.start_polling(
         dispatcher=dp,
         skip_updates=True,

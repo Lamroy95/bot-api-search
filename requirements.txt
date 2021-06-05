@@ -1,14 +1,5 @@
 aiogram==2.10.1
-aiohttp==3.7.3
-async-timeout==3.0.1
-attrs==20.3.0
-Babel==2.9.0
-certifi==2020.12.5
-chardet==3.0.4
-idna==3.1
-lxml==4.6.1
-multidict==5.1.0
 python-dotenv==0.15.0
-pytz==2020.5
-typing-extensions==3.7.4.3
-yarl==1.6.3
+aiohttp==3.7.3
+lxml==4.6.1
+influxdb-client
