@@ -11,8 +11,6 @@ from config import (
     CACHE_MAX_AGE,
     API_ARTICLE_ANCHOR_XPATH,
     EXAMPLES_LINK_XPATH,
-    MEMES_URL,
-    MEMES_XPATH,
 )
 
 
@@ -38,7 +36,6 @@ class Searcher:
             logging.debug('Updating cache')
             self._cached_articles = await self._get_articles_from_html()
             self._cached_examples = await self._get_examples_from_html()
-            self._cached_memes = await self._get_memes_from_github()
             await asyncio.sleep(CACHE_MAX_AGE)
 
     async def _get_all_articles(self) -> list:
@@ -86,34 +83,15 @@ class Searcher:
 
         return results
 
-    async def _get_memes_from_github(self) -> list:
-        results = []
-        content = await fetch(self._session, MEMES_URL)
-        tree = html.fromstring(content)
-
-        expr = MEMES_XPATH
-        for tag in tree.xpath(expr):
-            res = {
-                'type': 'Aiogram meme',
-                'link': '{}{}'.format('https://github.com', tag.xpath('@href')[0])
-            }
-            results.append(res)
-
-        return results
-
-    async def _get_memes(self) -> list:
-        if not self._cached_memes:
-            self._cached_memes = await self._get_memes_from_github()
-
-        return self._cached_memes
-
     async def get_api_articles(self, query: str) -> list:
         results = []
         query = query.lower()
         articles = await self._get_all_articles()
 
         for article in articles:
-            if query in article['title'] + article['link']:
+            if query in article['title']:
+                results.append(article)
+            elif query in article['link']:
                 results.append(article)
 
         return results
@@ -128,12 +106,6 @@ class Searcher:
                 results.append(example)
 
         return results
-
-    async def get_memes(self) -> list:
-        results = []
-        memes = await self._get_memes()
-
-        return memes
 
 
 searcher = Searcher()
