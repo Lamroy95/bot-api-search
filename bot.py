@@ -22,7 +22,7 @@ dp = Dispatcher(bot, storage=storage)
 async def send_welcome(message: types.Message):
     await message.reply(
         "Hello.\nI'm an inline bot that searches articles from Telegram Bot API and Aiogram framework examples!\n"
-        f"Inline mode only: <code>{(await bot.me).username} search_query</code>\n"
+        f"Inline mode only: <code>@{(await bot.me).username} search_query</code>\n"
         "<i>Powered by aiogram</i>"
     )
 
