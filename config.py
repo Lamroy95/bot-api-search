@@ -17,7 +17,7 @@ QUERY_CACHE_TIME = os.getenv("QUERY_CACHE_TIME")
 
 API_REFERENCE_URL = 'https://core.telegram.org/bots/api'
 EXAMPLES_URL = 'https://github.com/aiogram/aiogram/tree/dev-2.x/examples'
-CACHE_MAX_AGE = 120 * 60
+CACHE_MAX_AGE = 60 * 60
 EXAMPLES_ALIASES = {
     "finite_state_machine_example.py": ["fsm", "машина состояний"],
 }
